@@ -2,6 +2,7 @@ import { instance } from "../server";
 import { Request, Response } from "express";
 import crypto from "crypto";
 import { Payment } from "../models/payment.model";
+import { Member } from "../models/members.model";
 export const checkout = async (req: Request, res: Response) => {
   const { amount } = req.body;
   const options = {
@@ -44,10 +45,16 @@ export const paymentVerification = async (req: Request, res: Response) => {
     });
 
     //TODO: Add the studentID to the student database
+    const updatedMember = await Member.findOneAndUpdate(
+      { studentID }, // Filter to find the member
+      { razorpay_order_id }, // Update to apply
+      { new: true } // Option to return the updated document
+    );
 
     return res.status(200).json({
       success: true,
       razorpay_order_id,
+      updatedMember,
     });
     // res.redirect(`http://localhost:3000`);
   } else {
