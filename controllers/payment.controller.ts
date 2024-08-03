@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import crypto from "crypto";
 import { Payment } from "../models/payment.model";
 import { Member } from "../models/members.model";
+import welcomeMailTemplate from "../template/mailTemplate";
+const nodemailer = require("nodemailer");
 export const checkout = async (req: Request, res: Response) => {
   const { amount } = req.body;
   const options = {
@@ -50,13 +52,33 @@ export const paymentVerification = async (req: Request, res: Response) => {
       { razorpay_order_id }, // Update to apply
       { new: true } // Option to return the updated document
     );
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_SENDER,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.MAIL_SENDER,
+      to: "twitterabhinil@gmail.com",
+      subject: "Congratulations on becoming a member of Phoenix NSEC",
+      html: welcomeMailTemplate({ participantName: updatedMember?.name }),
+    };
+    transporter.sendMail(mailOptions, function (error: any, info: any) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
+    });
 
     return res.status(200).json({
       success: true,
       razorpay_order_id,
       updatedMember,
     });
-    // res.redirect(`http://localhost:3000`);
   } else {
     res.status(400).json({
       success: false,
