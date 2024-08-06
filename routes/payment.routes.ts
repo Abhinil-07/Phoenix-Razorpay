@@ -1,11 +1,11 @@
 import { Router } from "express";
 import {
   checkout,
-  paymentVerification,
+  paymentVeritication,
 } from "../controllers/payment.controller";
 
 const router = Router();
 
 router.route("/checkout").post(checkout);
-router.route("/paymentverification").post(paymentVerification);
+router.route("/verification").post(paymentVeritication);
 export default router;
