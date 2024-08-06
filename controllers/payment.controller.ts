@@ -13,10 +13,19 @@ export const checkout = async (req: Request, res: Response) => {
     currency: "INR",
   };
   const order = await instance.orders.create(options);
+  const member = await Member.findOneAndUpdate(
+    { studentID: req.body.studentID },
+    {
+      razorpay_order_id: order.id,
+      status: order.status,
+    },
 
+    { new: true }
+  );
   res.status(200).json({
     success: true,
     order,
+    member,
   });
 };
 
@@ -107,9 +116,16 @@ export const paymentVeritication = async (req: Request, res: Response) => {
     console.log(JSON.stringify(req.body));
     const order_id = req.body.payload.payment.entity.order_id;
     const payment_id = req.body.payload.payment.entity.id;
-    const order = await Payment.create({
+    const status = req.body.payload.payment.entity.status;
+    const member = await Member.findOneAndUpdate(
+      { razorpay_order_id: order_id },
+      { status: status }
+    );
+    await Payment.create({
       razorpay_order_id: order_id,
       razorpay_payment_id: payment_id,
+      status: status,
+      studentID: member?.studentID,
     });
   } else {
     // pass it

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 const MemberModel = new mongoose.Schema({
   name: {
     type: String,
@@ -13,6 +12,10 @@ const MemberModel = new mongoose.Schema({
   razorpay_order_id: {
     type: String,
     unique: true,
+  },
+  staus: {
+    type: String,
+    default: "pending",
   },
 });
 
