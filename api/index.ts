@@ -13,7 +13,7 @@ export const instance = new Razorpay({
 });
 connectDB()
   .then(() => {
-    app.listen(process.env.PORT || 4000, () => {
+    app.listen(process.env.PORT || 7000, () => {
       console.log("Server is running on port " + process.env.PORT);
     });
   })
