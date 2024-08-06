@@ -105,6 +105,12 @@ export const paymentVeritication = async (req: Request, res: Response) => {
     console.log("request is legit");
     // process it
     console.log(JSON.stringify(req.body));
+    const order_id = req.body.payload.payment.entity.order_id;
+    const payment_id = req.body.payload.payment.entity.id;
+    const order = await Payment.create({
+      razorpay_order_id: order_id,
+      razorpay_payment_id: payment_id,
+    });
   } else {
     // pass it
   }

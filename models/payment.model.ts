@@ -9,10 +9,10 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  razorpay_signature: {
-    type: String,
-    required: true,
-  },
+  // razorpay_signature: {
+  //   type: String,
+  //   required: true,
+  // },
   studentID: {
     type: String,
     // required: true,
