@@ -13,9 +13,10 @@ const MemberModel = new mongoose.Schema({
     type: String,
     unique: true,
   },
-  staus: {
+  status: {
     type: String,
     default: "pending",
+    required: true,
   },
 });
 

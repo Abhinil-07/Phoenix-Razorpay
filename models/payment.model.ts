@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { STATES } from "mongoose";
 
 const paymentSchema = new mongoose.Schema({
   razorpay_order_id: {
@@ -16,6 +16,10 @@ const paymentSchema = new mongoose.Schema({
   studentID: {
     type: String,
     // required: true,
+  },
+  status: {
+    type: String,
+    required: true,
   },
 });
 
