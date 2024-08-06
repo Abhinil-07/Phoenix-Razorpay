@@ -18,6 +18,11 @@ const MemberModel = new mongoose.Schema({
     default: "pending",
     required: true,
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 });
 
 const Member = mongoose.model("Member", MemberModel);
