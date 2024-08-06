@@ -104,10 +104,7 @@ export const paymentVeritication = async (req: Request, res: Response) => {
   if (digest === req.headers["x-razorpay-signature"]) {
     console.log("request is legit");
     // process it
-    require("fs").writeFileSync(
-      "payment1.json",
-      JSON.stringify(req.body, null, 4)
-    );
+    console.log(JSON.stringify(req.body));
   } else {
     // pass it
   }
