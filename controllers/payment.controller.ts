@@ -63,27 +63,27 @@ export const checkout = async (req: Request, res: Response) => {
 //       { new: true } // Option to return the updated document
 //     );
 //     console.log(updatedMember);
-//     const transporter = nodemailer.createTransport({
-//       service: "gmail",
-//       auth: {
-//         user: process.env.MAIL_SENDER,
-//         pass: process.env.MAIL_PASSWORD,
-//       },
-//     });
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.MAIL_SENDER,
+//     pass: process.env.MAIL_PASSWORD,
+//   },
+// });
 
-//     const mailOptions = {
-//       from: process.env.MAIL_SENDER,
-//       to: "ichandrimapaul@gmail.com",
-//       subject: "Congratulations on becoming a member of Phoenix NSEC",
-//       html: welcomeMailTemplate({ participantName: updatedMember?.name }),
-//     };
-//     transporter.sendMail(mailOptions, function (error: any, info: any) {
-//       if (error) {
-//         console.log(error);
-//       } else {
-//         console.log("Email sent: " + info.response);
-//       }
-//     });
+// const mailOptions = {
+//   from: process.env.MAIL_SENDER,
+//   to: "ichandrimapaul@gmail.com",
+//   subject: "Congratulations on becoming a member of Phoenix NSEC",
+//   html: welcomeMailTemplate({ participantName: updatedMember?.name }),
+// };
+// transporter.sendMail(mailOptions, function (error: any, info: any) {
+//   if (error) {
+//     console.log(error);
+//   } else {
+//     console.log("Email sent: " + info.response);
+//   }
+// });
 
 //     return res.status(200).json({
 //       success: true,
@@ -126,6 +126,27 @@ export const paymentVeritication = async (req: Request, res: Response) => {
       razorpay_payment_id: payment_id,
       status: status,
       studentID: member?.studentID,
+    });
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_SENDER,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.MAIL_SENDER,
+      to: member?.email,
+      subject: "Congratulations on becoming a member of Phoenix NSEC",
+      html: welcomeMailTemplate({ participantName: member?.name }),
+    };
+    transporter.sendMail(mailOptions, function (error: any, info: any) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("Email sent: " + info.response);
+      }
     });
   } else {
     // pass it
