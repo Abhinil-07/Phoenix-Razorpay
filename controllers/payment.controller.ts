@@ -1,10 +1,19 @@
 import { instance } from "../server";
 import { Request, Response } from "express";
-import crypto from "crypto";
+
 import { Payment } from "../models/payment.model";
 import { Member } from "../models/members.model";
-import welcomeMailTemplate from "../template/mailTemplate";
-const nodemailer = require("nodemailer");
+import Redis from "ioredis";
+import crypto from "crypto";
+const redis = new Redis({
+  host: "redis-10712.c305.ap-south-1-1.ec2.redns.redis-cloud.com",
+  port: 10712,
+  password: "SqQpUjOR47uKQONYGRWMqZjLlTTEOJvK",
+});
+
+redis.on("connect", () => {
+  console.log("Redis connected");
+});
 
 export const checkout = async (req: Request, res: Response) => {
   const { amount } = req.body;
@@ -22,11 +31,57 @@ export const checkout = async (req: Request, res: Response) => {
 
     { new: true }
   );
+  console.log(member);
+  console.log("I'm here");
   res.status(200).json({
     success: true,
     order,
     member,
   });
+};
+
+export const razorpayWebhook = async (req: Request, res: Response) => {
+  const secret = "Wa8T3Kb@E@nhBCN"; // Replace with your Razorpay webhook secret
+
+  try {
+    // Verify webhook signature
+    const webhookSignature = req.headers["x-razorpay-signature"];
+    const body = JSON.stringify(req.body);
+
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(body)
+      .digest("hex");
+
+    if (webhookSignature !== expectedSignature) {
+      console.log("Invalid signature");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid signature" });
+    }
+
+    // Handle the event
+    const event = req.body.event;
+    const payload = req.body.payload;
+
+    if (event === "payment.captured") {
+      const paymentDetails = payload.payment.entity;
+
+      // Print payment details
+      console.log("Payment Captured:");
+      console.log(`Order ID: ${paymentDetails.order_id}`);
+      console.log(`Payment ID: ${paymentDetails.id}`);
+      console.log(`Amount: ${paymentDetails.amount}`);
+      console.log(`Status: ${paymentDetails.status}`);
+    } else {
+      console.log(`Unhandled event: ${event}`);
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error handling webhook:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 };
 
 // export const paymentVerification = async (req: Request, res: Response) => {
@@ -97,62 +152,56 @@ export const checkout = async (req: Request, res: Response) => {
 //   }
 // };
 
-export const paymentVeritication = async (req: Request, res: Response) => {
-  const secret = "123456";
+// export const paymentVeritication = async (req: Request, res: Response) => {
+//   const secret = "123456";
 
-  console.log(req.body);
+//   console.log(req.body);
 
-  const crypto = require("crypto");
+//   const crypto = require("crypto");
 
-  const shasum = crypto.createHmac("sha256", secret);
-  shasum.update(JSON.stringify(req.body));
-  const digest = shasum.digest("hex");
+//   const shasum = crypto.createHmac("sha256", secret);
+//   shasum.update(JSON.stringify(req.body));
+//   const digest = shasum.digest("hex");
 
-  console.log(digest, req.headers["x-razorpay-signature"]);
+//   console.log(digest, req.headers["x-razorpay-signature"]);
 
-  if (digest === req.headers["x-razorpay-signature"]) {
-    console.log("request is legit");
-    // process it
-    console.log(JSON.stringify(req.body));
-    const order_id = req.body.payload.payment.entity.order_id;
-    const payment_id = req.body.payload.payment.entity.id;
-    const status = req.body.payload.payment.entity.status;
-    const member = await Member.findOneAndUpdate(
-      { razorpay_order_id: order_id },
-      { status: status }
-    );
-    await Payment.create({
-      razorpay_order_id: order_id,
-      razorpay_payment_id: payment_id,
-      status: status,
-      studentID: member?.studentID,
-    });
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.MAIL_SENDER,
-        pass: process.env.MAIL_PASSWORD,
-      },
-    });
+//   if (digest === req.headers["x-razorpay-signature"]) {
+//     console.log("request is legit");
+//     // process it
+//     console.log(JSON.stringify(req.body));
+//     const order_id = req.body.payload.payment.entity.order_id;
+//     const payment_id = req.body.payload.payment.entity.id;
+//     const status = req.body.payload.payment.entity.status;
+//     const member = await Member.findOneAndUpdate(
+//       { razorpay_order_id: order_id },
+//       { status: status }
+//     );
+//     await Payment.create({
+//       razorpay_order_id: order_id,
+//       razorpay_payment_id: payment_id,
+//       status: status,
+//       studentID: member?.studentID,
+//     });
+//     console.log(member);
+//     if (member) {
+//       console.log("inside redis if else");
+//       const info = await redis.lpush(
+//         "emailQueue",
+//         JSON.stringify({
+//           to: member.email, // Replace with the correct email field
+//           participantName: member.name, // Replace with the correct name field
+//         })
+//       );
+//       console.log(info)
+//       console.log("Job added to queue");
+//     } else {
+//       console.log("Member not found");
+//     }
+//   } else {
+//     // pass it
+//   }
 
-    const mailOptions = {
-      from: process.env.MAIL_SENDER,
-      to: member?.email,
-      subject: "Congratulations on becoming a member of Phoenix NSEC",
-      html: welcomeMailTemplate({ participantName: member?.name }),
-    };
-    transporter.sendMail(mailOptions, function (error: any, info: any) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    });
-  } else {
-    // pass it
-  }
-
-  return res.status(200).json({
-    status: "ok",
-  });
-};
+//   return res.status(200).json({
+//     status: "ok",
+//   });
+// };
