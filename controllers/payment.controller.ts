@@ -42,7 +42,12 @@ export const checkout = async (req: Request, res: Response) => {
 
 export const razorpayWebhook = async (req: Request, res: Response) => {
   const secret = "Wa8T3Kb@E@nhBCN"; // Replace with your Razorpay webhook secret
-
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    studentID,
+  } = req.body;
   try {
     // Verify webhook signature
     const webhookSignature = req.headers["x-razorpay-signature"];
@@ -66,7 +71,20 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
 
     if (event === "payment.captured") {
       const paymentDetails = payload.payment.entity;
+      await Payment.create({
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        studentID,
+      });
 
+      //TODO: Add the studentID to the student database
+      const updatedMember = await Member.findOneAndUpdate(
+        { studentID }, // Filter to find the member
+        { razorpay_order_id }, // Update to apply
+        { new: true } // Option to return the updated document
+      );
+      console.log(updatedMember);
       // Print payment details
       console.log("Payment Captured:");
       console.log(`Order ID: ${paymentDetails.order_id}`);
@@ -85,12 +103,12 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
 };
 
 // export const paymentVerification = async (req: Request, res: Response) => {
-//   const {
-//     razorpay_order_id,
-//     razorpay_payment_id,
-//     razorpay_signature,
-//     studentID,
-//   } = req.body;
+// const {
+//   razorpay_order_id,
+//   razorpay_payment_id,
+//   razorpay_signature,
+//   studentID,
+// } = req.body;
 
 //   const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -104,20 +122,20 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
 //   if (isAuthentic) {
 //     // Database comes here
 
-//     await Payment.create({
-//       razorpay_order_id,
-//       razorpay_payment_id,
-//       razorpay_signature,
-//       studentID,
-//     });
+// await Payment.create({
+//   razorpay_order_id,
+//   razorpay_payment_id,
+//   razorpay_signature,
+//   studentID,
+// });
 
-//     //TODO: Add the studentID to the student database
-//     const updatedMember = await Member.findOneAndUpdate(
-//       { studentID }, // Filter to find the member
-//       { razorpay_order_id }, // Update to apply
-//       { new: true } // Option to return the updated document
-//     );
-//     console.log(updatedMember);
+// //TODO: Add the studentID to the student database
+// const updatedMember = await Member.findOneAndUpdate(
+//   { studentID }, // Filter to find the member
+//   { razorpay_order_id }, // Update to apply
+//   { new: true } // Option to return the updated document
+// );
+// console.log(updatedMember);
 // const transporter = nodemailer.createTransport({
 //   service: "gmail",
 //   auth: {
