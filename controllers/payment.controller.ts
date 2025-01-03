@@ -71,20 +71,9 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
 
     if (event === "payment.captured") {
       const paymentDetails = payload.payment.entity;
-      await Payment.create({
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        studentID,
-      });
-
-      //TODO: Add the studentID to the student database
-      const updatedMember = await Member.findOneAndUpdate(
-        { studentID }, // Filter to find the member
-        { razorpay_order_id }, // Update to apply
-        { new: true } // Option to return the updated document
-      );
-      console.log(updatedMember);
+      console.log(razorpay_order_id);
+      console.log(razorpay_payment_id);
+      console.log("Now payment details");
       // Print payment details
       console.log("Payment Captured:");
       console.log(`Order ID: ${paymentDetails.order_id}`);
